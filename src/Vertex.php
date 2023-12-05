@@ -23,7 +23,7 @@ class Vertex
         $edges = [];
 
         foreach ($this->edges as $edge) {
-            $edges[] = $edge->get();
+            $edges[] = $edge;
         }
 
         return $edges;

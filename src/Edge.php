@@ -45,6 +45,8 @@ class Edge
         return [
             'hash' => base64_encode(uniqid($this->vertexA->getValue() . $this->vertexB->getValue())),
             'weight' => $this->weight,
+            'vertexA' => $this->vertexA->getValue(),
+            'vertexB' => $this->vertexB->getValue(),
         ];
     }
 }
