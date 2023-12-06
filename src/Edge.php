@@ -8,9 +8,11 @@ class Edge
 
     private Vertex $vertexB;
 
-    private int $weight;
+    private $weight;
 
-    public function __construct(Vertex $vertexA, Vertex $vertexB, $weight = 1)
+    private string $hash;
+
+    public function __construct(Vertex $vertexA, Vertex $vertexB, $weight = null)
     {
         $this->vertexA = $vertexA;
         $this->vertexB = $vertexB;
@@ -30,6 +32,11 @@ class Edge
         return $this->weight;
     }
 
+    public function hasWeight(): bool
+    {
+        return ! is_null($this->weight);
+    }
+
     public function getVertexA(): Vertex
     {
         return $this->vertexA;
@@ -43,10 +50,20 @@ class Edge
     public function get(): array
     {
         return [
-            'hash' => base64_encode(uniqid($this->vertexA->getValue() . $this->vertexB->getValue())),
             'weight' => $this->weight,
             'vertexA' => $this->vertexA->getValue(),
             'vertexB' => $this->vertexB->getValue(),
         ];
+    }
+
+    /**
+     * Gera um hash único para a aresta
+     * @param int $origin
+     * @param int $end
+     * @return string
+     */
+    public static function generateEdgeHash(int $origin, int $end): string
+    {
+        return base64_encode('edge_hash' . $origin . $end . $end . $origin);
     }
 }

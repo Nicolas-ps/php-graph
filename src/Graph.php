@@ -6,7 +6,7 @@ use App\Exceptions\InvalidEdgeException;
 
 class Graph implements \JsonSerializable
 {
-    private array $edges;
+    private array $edges = [];
 
     private array $matrix = [];
 
@@ -29,6 +29,29 @@ class Graph implements \JsonSerializable
     }
 
     /**
+     * Retorna uma aresta do grafo a partir de dois vértices
+     * @param int $origin
+     * @param int $end
+     * @return Edge|null
+     */
+    public function getEdge(int $origin, int $end): ?Edge
+    {
+        $edgeOfVertex = null;
+        foreach ($this->edges as $edge) {
+            $pointsAreEndsCheckOne = $edge->get()['vertexA'] == $origin && $edge->get()['vertexB'] == $end;
+            $pointsAreEndsCheckTwo = $edge->get()['vertexA'] == $end && $edge->get()['vertexB'] == $origin;
+
+            if ($pointsAreEndsCheckOne || $pointsAreEndsCheckTwo) {
+                $edgeOfVertex = $edge;
+                break;
+            }
+        }
+
+        return $edgeOfVertex;
+    }
+
+
+    /**
      * Adiciona uma aresta ao grafo
      * @param Edge $edge Aresta a ser adicionada
      * @return void
@@ -39,6 +62,7 @@ class Graph implements \JsonSerializable
         if ($this->weighted && ! $edge->hasWeight()) {
             throw new InvalidEdgeException('O grafo é ponderado, portanto a aresta deve ter um peso');
         }
+
         $this->edges[] = $edge;
     }
 
