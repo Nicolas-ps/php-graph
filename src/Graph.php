@@ -12,14 +12,11 @@ class Graph implements \JsonSerializable
 
     private array $vertexes = [];
 
-    /**
-     * Adiciona uma aresta ao grafo
-     * @param Edge $edge Aresta a ser adicionada
-     * @return void
-     */
-    public function addEdge(Edge $edge): void
+    private bool $weighted;
+
+     public function __construct(bool $weighted = false)
     {
-        $this->edges[] = $edge;
+        $this->weighted = $weighted;
     }
 
     /**
@@ -32,27 +29,35 @@ class Graph implements \JsonSerializable
     }
 
     /**
-     * Serializa o grafo em JSON estruturado com as arestas, vértices e pesos, caso o grafo seja ponderado
-     * @return string
+     * Adiciona uma aresta ao grafo
+     * @param Edge $edge Aresta a ser adicionada
+     * @return void
+     * @throws InvalidEdgeException
      */
-    public function jsonSerialize(): string
+    public function addEdge(Edge $edge): void
     {
-        $edges = [];
-        foreach ($this->edges as $edge) {
-            $edges[] = [
-                'vertexA' => [
-                    'value' => intval($edge->getVertexA()->getValue()),
-                    'edges' => $edge->getVertexB()->getEdges()
-                ],
-                'vertexB' => [
-                    'value' => intval($edge->getVertexB()->getValue()),
-                    'edges' => $edge->getVertexB()->getEdges()
-                ],
-                'weight' => $edge->getWeight()
-            ];
+        if ($this->weighted && ! $edge->hasWeight()) {
+            throw new InvalidEdgeException('O grafo é ponderado, portanto a aresta deve ter um peso');
         }
+        $this->edges[] = $edge;
+    }
 
-        return json_encode($edges);
+    /**
+     * @throws InvalidEdgeException
+     */
+    public function addMultipleEdges(array $edges): void
+    {
+        foreach ($edges as $edge) {
+            if (! $edge instanceof Edge) {
+                throw new InvalidEdgeException('O array deve conter apenas objetos do tipo Edge');
+            }
+
+            if ($this->weighted && ! $edge->hasWeight()) {
+                throw new InvalidEdgeException('O grafo é ponderado, portanto todas as arestas devem ter um peso');
+            }
+
+            $this->addEdge($edge);
+        }
     }
 
     /**
@@ -88,25 +93,6 @@ class Graph implements \JsonSerializable
         }
     }
 
-    public function getAdjacencyMatrix(): array
-    {
-        return $this->matrix;
-    }
-
-    /**
-     * @throws InvalidEdgeException
-     */
-    public function addMultipleEdges(array $edges): void
-    {
-        foreach ($edges as $edge) {
-            if (! $edge instanceof Edge) {
-                throw new InvalidEdgeException('O array deve conter apenas objetos do tipo Edge');
-            }
-
-            $this->addEdge($edge);
-        }
-    }
-
     /**
      * Processa a adjacência de um vértice a partir de suas arestas
      * @param array $vertexEdges
@@ -116,6 +102,7 @@ class Graph implements \JsonSerializable
     private function processesVertexAdjacency(array $vertexEdges, Vertex $vertex): void
     {
         foreach ($vertexEdges as $edge) {
+            // @todo implementar validação para não adicionar vértices repetidos
             $this->vertexes[] = $edge['vertexA'];
             $this->vertexes[] = $edge['vertexB'];
 
@@ -125,5 +112,34 @@ class Graph implements \JsonSerializable
                 $this->matrix[$vertex->getValue()][$edge['vertexA']] = true;
             }
         }
+    }
+
+    public function getAdjacencyMatrix(): array
+    {
+        return $this->matrix;
+    }
+
+    /**
+     * Serializa o grafo em JSON estruturado com as arestas, vértices e pesos, caso o grafo seja ponderado
+     * @return string
+     */
+    public function jsonSerialize(): string
+    {
+        $edges = [];
+        foreach ($this->edges as $edge) {
+            $edges[] = [
+                'vertexA' => [
+                    'value' => intval($edge->getVertexA()->getValue()),
+                    'edges' => $edge->getVertexB()->getEdges()
+                ],
+                'vertexB' => [
+                    'value' => intval($edge->getVertexB()->getValue()),
+                    'edges' => $edge->getVertexB()->getEdges()
+                ],
+                'weight' => $edge->getWeight()
+            ];
+        }
+
+        return json_encode($edges);
     }
 }
