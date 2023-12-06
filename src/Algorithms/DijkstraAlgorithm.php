@@ -6,6 +6,8 @@ use App\Graph;
 
 class DijkstraAlgorithm
 {
+    private array $visited = [];
+
     private array $shortestPath = [];
 
     /**
@@ -13,6 +15,7 @@ class DijkstraAlgorithm
      */
     public function shortestPath(Graph $graph, int $start, int $end)
     {
+        $this->shortestPath[] = $start;
         $graphAdjacencyMatrix = $graph->getAdjacencyMatrix();
         $originVertexAdjacency = $graphAdjacencyMatrix[$start] ?? null;
         $destinyVertexAdjacency = $graphAdjacencyMatrix[$end] ?? null;
@@ -25,56 +28,59 @@ class DijkstraAlgorithm
             throw new \Exception('O vértice de destino não existe');
         }
 
-        $labeledGraph = false;
         $vertex = $start;
-        while (!$labeledGraph) {
-            $vertexAdjacencyMatrix = $graphAdjacencyMatrix[$vertex];
+        $vertexAdjacencyMatrix = $graphAdjacencyMatrix[$vertex];
 
-            foreach ($vertexAdjacencyMatrix as $vertexForValidation => $isAdjacent) {
-                $visited[$vertex][$vertex] = [
-                    'weight' => 0,
-                    'previous' => null,
-                ];
-
-                if ($isAdjacent) {
-                    $edge = $graph->getEdge($vertex, $vertexForValidation);
-
-                    if ($vertex == $vertexForValidation) {
-                        continue;
-                    }
-
-                    $visited[$vertex][$vertexForValidation] = [
-                        'weight' => $edge->getWeight() ?? 0,
-                        'previous' => $vertex,
-                    ];
-                }
+        foreach ($vertexAdjacencyMatrix as $vertexForValidation => $isAdjacent) {
+            if (isset($this->visited[$vertex][$vertexForValidation])) {
+                continue;
             }
 
-            $labeledGraph = true;
-        }
+            $this->visited[$vertex][$vertex] = [
+                'weight' => 0,
+                'previous' => null,
+            ];
 
-        dd($visited);
+            if ($isAdjacent) {
+                $edge = $graph->getEdge($vertex, $vertexForValidation);
+
+                if ($vertex == $vertexForValidation) {
+                    continue;
+                }
+
+                $this->visited[$vertex][$vertexForValidation] = [
+                    'weight' => $edge->getWeight() ?? 0,
+                    'previous' => $vertex,
+                ];
+            }
+
+            $this->shortestPath($graph, $vertexForValidation, $end);
+        }
     }
 
     /**
      * Retorna a aresta com o menor peso
      *
      * @param array $adjacency Array de adjacência
-     * @return mixed|null
+     * @return int|string|null
      */
     public function getEdgeWithMinWeight(array $adjacency)
     {
         $minWeight = null;
-        $minWeightEdge = null;
+        $nextVertex = null;
 
-        foreach ($adjacency as $vertex => $edge) {
-            if ($edge['weight'] < $minWeight || is_null($minWeight)) {
-                $minWeight = $edge['weight'];
-                $minWeightEdge = $edge;
+        foreach ($adjacency as $vertex => $weightAndPrevious) {
+            if (! $weightAndPrevious['previous']) {
+                continue;
+            }
+
+            if ($weightAndPrevious['weight'] < $minWeight || is_null($minWeight)) {
+                $minWeight = $weightAndPrevious['weight'];
+                $nextVertex = $vertex;
             }
         }
 
-        return $minWeightEdge;
+        return $nextVertex;
     }
 
     /**
@@ -85,16 +91,18 @@ class DijkstraAlgorithm
     public function isBifurcation(array $adjacency): bool
     {
         $minWeight = null;
-        $minWeightEdge = null;
 
         foreach ($adjacency as $vertex => $edge) {
-            if ($edge['weight'] < $minWeight || is_null($minWeight)) {
-                $minWeight = $edge['weight'];
-                $minWeightEdge = $edge;
+            if (! $edge['previous']) {
+                continue;
             }
 
-            if ($edge['weight'] == $minWeight) {
+            if ($edge['weight'] == $minWeight && ! is_null($minWeight)) {
                 return true;
+            }
+
+            if ($edge['weight'] < $minWeight || is_null($minWeight)) {
+                $minWeight = $edge['weight'];
             }
         }
 
