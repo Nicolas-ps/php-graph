@@ -3,6 +3,7 @@
 namespace App\Algorithms;
 
 use App\Graph;
+use Exception;
 
 class DijkstraAlgorithm
 {
@@ -11,21 +12,33 @@ class DijkstraAlgorithm
     private array $shortestPath = [];
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
-    public function shortestPath(Graph $graph, int $start, int $end)
+    public function calcShortestPath(Graph $graph, int $start, int $end)
     {
+        $this->shortestPath($graph, $start, $end);
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function shortestPath(Graph $graph, int $start, int $end): void
+    {
+        if (isset($this->visited[$start][$end])) {
+            return;
+        }
+
         $this->shortestPath[] = $start;
         $graphAdjacencyMatrix = $graph->getAdjacencyMatrix();
         $originVertexAdjacency = $graphAdjacencyMatrix[$start] ?? null;
         $destinyVertexAdjacency = $graphAdjacencyMatrix[$end] ?? null;
 
         if (empty($originVertexAdjacency)) {
-            throw new \Exception('O vértice de origem não existe');
+            throw new Exception('O vértice de origem não existe');
         }
 
         if (empty($destinyVertexAdjacency)) {
-            throw new \Exception('O vértice de destino não existe');
+            throw new Exception('O vértice de destino não existe');
         }
 
         $vertex = $start;
