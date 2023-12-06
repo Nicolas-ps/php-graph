@@ -49,7 +49,7 @@ $graph->buildMatrix();
 
 $dijkstra = new DijkstraAlgorithm();
 try {
-    $dijkstra->shortestPath($graph, 1, 6);
+    $dijkstra->calcShortestPath($graph, 1, 6);
 } catch (Throwable $e) {
     dd("Erro ao executar algoritmo de Dijkstra: {$e->getMessage()}");
 }
