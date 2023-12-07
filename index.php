@@ -47,9 +47,11 @@ try {
 
 $graph->buildMatrix();
 
-$dijkstra = new DijkstraAlgorithm();
+//dd($graph->getAdjacencyMatrix());
+
+$algorithm = new DijkstraAlgorithm();
 try {
-    $dijkstra->calcShortestPath($graph, 1, 6);
+    dd($algorithm->getShortestPath($graph, 1, 6));
 } catch (Throwable $e) {
-    dd("Erro ao executar algoritmo de Dijkstra: {$e->getMessage()}");
+    dd($e);
 }
