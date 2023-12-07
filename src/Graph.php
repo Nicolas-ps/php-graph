@@ -100,18 +100,18 @@ class Graph implements \JsonSerializable
             $this->processesVertexAdjacency($vertexAEdges, $vertexA);
             $this->processesVertexAdjacency($vertexBEdges, $vertexB);
 
-            $this->matrix[$vertexA->getValue()][$vertexB->getValue()] = true;
-            $this->matrix[$vertexB->getValue()][$vertexA->getValue()] = true;
+            $this->matrix[$vertexA->getValue()][$vertexB->getValue()] = $this->weighted ? $edge->getWeight() : 1;
+            $this->matrix[$vertexB->getValue()][$vertexA->getValue()] = $this->weighted ? $edge->getWeight() : 1;
         }
 
         foreach ($this->vertexes as $vertex) {
             foreach ($this->vertexes as $vertex2) {
                 if (! isset($this->matrix[$vertex][$vertex2])) {
-                    $this->matrix[$vertex][$vertex2] = false;
+                    $this->matrix[$vertex][$vertex2] = 0;
                 }
 
                 if ($vertex == $vertex2) {
-                    $this->matrix[$vertex][$vertex2] = true;
+                    $this->matrix[$vertex][$vertex2] = 1;
                 }
             }
         }
@@ -127,13 +127,18 @@ class Graph implements \JsonSerializable
     {
         foreach ($vertexEdges as $edge) {
             // @todo implementar validação para não adicionar vértices repetidos
-            $this->vertexes[] = $edge['vertexA'];
-            $this->vertexes[] = $edge['vertexB'];
+            if (! in_array($edge['vertexA'], $this->vertexes)) {
+                $this->vertexes[] = $edge['vertexA'];
+            }
+
+            if (! in_array($edge['vertexB'], $this->vertexes)) {
+                $this->vertexes[] = $edge['vertexB'];
+            }
 
             if ($edge['vertexA'] == $vertex->getValue()) {
-                $this->matrix[$vertex->getValue()][$edge['vertexB']] = true;
+                $this->matrix[$vertex->getValue()][$edge['vertexB']] = $this->weighted ? $edge['weight'] : 1;
             } else if ($edge['vertexB'] == $vertex->getValue()) {
-                $this->matrix[$vertex->getValue()][$edge['vertexA']] = true;
+                $this->matrix[$vertex->getValue()][$edge['vertexA']] = $this->weighted ? $edge['weight'] : 1;
             }
         }
     }
@@ -141,6 +146,11 @@ class Graph implements \JsonSerializable
     public function getAdjacencyMatrix(): array
     {
         return $this->matrix;
+    }
+
+    public function getVertexes(): array
+    {
+        return $this->vertexes;
     }
 
     /**
